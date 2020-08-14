@@ -1,0 +1,64 @@
+{
+  "Comment": "Interview Scheduler",
+  "StartAt": "Init",
+  "States": {
+    "Init": {
+      "Comment": "Just to initialized the state machine",
+      "Type": "Pass",
+      "Next": "SuggestTimeSlot"
+    },
+    "SuggestTimeSlot": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "SuggestTimeSlot",
+        "Payload": {
+          "Input.$": "$",
+          "token.$": "$$.Task.Token"
+        }
+      },
+      "HeartbeatSeconds": 600,
+      "Next": "CheckIfTimeSlotAvaliable"
+    },
+    "CheckIfTimeSlotAvaliable": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "CheckTimeSlotAvaliable",
+        "Payload": {
+          "Input.$": "$"
+        }
+      },
+      "Next": "TimeSlotAvaliable?"
+    },
+    "TimeSlotAvaliable?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.Payload.avalibility",
+          "BooleanEquals": true,
+          "Next": "Yes"
+        },
+        {
+          "Variable": "$.Payload.avalibility",
+          "BooleanEquals": false,
+          "Next": "No"
+        }
+      ],
+      "Default": "No"
+    },
+    "Yes": {
+      "Comment": "Send confirmation email or something.",
+      "Type": "Pass",
+      "Next": "Done"
+    },
+    "No": {
+      "Type": "Pass",
+      "Next": "SuggestTimeSlot"
+    },
+    "Done": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+}

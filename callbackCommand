@@ -1,0 +1,1 @@
+aws stepfunctions send-task-success --task-token <Token Here> --task-output '{"status": "success"}'
